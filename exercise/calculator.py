@@ -1,53 +1,63 @@
-from typing import Optional, Any
+from typing import Optional,Callable, Tuple, Any
 from utilities import Utilities
 
 # Exercise of Calculator
 
 class Calculator:
 
-    number_selection: Optional[int] = None
-    selection: str = ""
+    MENU: str = "This is a program of a calculator. \n Please select an option: \n 1. Sum \n 2. Rest \n 3. Multiplication \n 4. Division"
 
     def __init__(self) -> None:
-        print("""This is a program of a calculator.
-Please select an option:
-1. Sum
-2. Rest
-3. Multiplication
-4. Division""")
+        self.selection: int | str = ""
+        self.number_selection: int | None = None
 
-        self.selection = input().strip()
-        self.number_selection = Utilities.convert_to_int(self.selection)
+        print(self.MENU)
 
-        if self.number_selection == 1:
-            print("Please enter the first number of the sum: ")
-            num: int = Utilities.convert_to_int(input().strip())
-            print("Please enter the second number of the sum: ")
-            num_2: int = Utilities.convert_to_int(input().strip())
+        try:
+            self.selection = input().strip()
+            self.number_selection = Utilities.convert_to_int(self.selection)
+        except ValueError:
+            print("Invalid Option")
+            return
 
-            print("The result of the sum is: ", self.sum(num, num_2))
-        elif self.number_selection == 2:
-            print("Please enter the first number of the rest: ")
-            num: int = Utilities.convert_to_int(input().strip())
-            print("Please enter the second number of the rest: ")
-            num_2: int = Utilities.convert_to_int(input().strip())
+        operations: dict[int, Tuple[Callable[[int, int], int | float], str]] = {
+            1: (self.sum, "sum"),
+            2: (self.rest, "rest"),
+            3: (self.multiplication, "multiplication"),
+            4: (self.division, "division"),
+        }
 
-            print("The result of the rest is: ", self.rest(num, num_2))
-        elif self.number_selection == 3:
-            print("Please enter the first number of the multiplication: ")
-            num: int = Utilities.convert_to_int(input().strip())
-            print("Please enter the second number of the multiplication: ")
-            num_2: int = Utilities.convert_to_int(input().strip())
+        op = operations.get(self.number_selection)
 
-            print("The result of the multiplication is: ", self.multiplication(num, num_2))
-        elif self.number_selection == 4:
-            print("Please enter the first number of the division: ")
-            num: int = Utilities.convert_to_int(input().strip())
-            print("Please enter the second number of the division: ")
-            num_2: int = Utilities.convert_to_int(input().strip())
+        if not op:
+            print("Option not supported.")
+            return
 
-            print("The result of the division is: ", self.division(num, num_2))
+        func, name = op
+        a, b = self.ask_two_numbers(name)
 
+        try:
+            result = func(a, b)
+        except ZeroDivisionError:
+            print("Error: división por cero.")
+            return
+
+        print(f"The result of the {name} is: {result}")
+
+
+    def ask_int(self, prompt: str) -> int:
+        while True:
+            try:
+                return Utilities.convert_to_int(input(prompt).strip())
+            except ValueError:
+                print("Entrada inválida. Introduce un número entero válido.")
+
+
+    def ask_two_numbers(self, operation_name: str) -> Tuple[int, int]:
+        a = self.ask_int(f"Please enter the first number of the {operation_name}: ")
+        b = self.ask_int(f"Please enter the second number of the {operation_name}: ")
+
+        return a, b
 
     @staticmethod
     def sum(num: int, num_2: int) -> int:
